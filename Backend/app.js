@@ -1,11 +1,24 @@
 const express = require('express');
-
+const path = require('path');
 const bodyParser = require('body-parser');
 
 const app = express();
 
+const postsRoutes = require('./routes/posts');
+
+const mongoose = require('mongoose');
+
+mongoose.connect("mongodb+srv://premkb@cluster0-z6cvv.mongodb.net/meanDB?retryWrites=true&w=majority")
+        .then(()=>{
+          console.log("Database Connected");
+        })
+        .catch(()=>{
+          console.log('connection Failed!')
+        });
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended : false}));
+app.use("/images", express.static(path.join("Backend/images")));
 
 app.use((req,res,next)=>{
   res.setHeader("Access-Control-Allow-Origin","*");
@@ -14,29 +27,7 @@ app.use((req,res,next)=>{
   next();
 })
 
-app.post('/api/posts',(req,res,next)=>{
-  const post = req.body;
-  console.log(post);
-  res.status(201).json({
-    message:"Post Method Successful"
-  })
-});
 
-app.get('/api/posts',(req,res,next) => {
-
-  const posts = [
-    {id: "fsadsa13", title:"1", content: "1"},
-    {id: "fsadsa11", title:"3", content: "3"},
-    {id: "fsadsa11", title:"4", content: "4"},
-    {id: "fsadsa12", title:"2", content: "2"}
-  ];
-  res.status(200).json({
-    message: "Posts delivered successfully!!!",
-    posts: posts
-  });
-});
-
-
-
+app.use("/api/posts/",postsRoutes);
 
 module.exports = app;
