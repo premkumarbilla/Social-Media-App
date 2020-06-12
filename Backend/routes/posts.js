@@ -43,14 +43,41 @@ router.post('',multer({storage:storage}).single("image"),(req,res,next)=>{
   });
 });
 
-router.get('',(req,res,next) => {
-  Post.find().then(docs => {
+router.put('/:id',multer({storage:storage}).single("image"),(req,res,next)=>{
+  let imagePath = req.body.imagePath;
+  if(req.file){
+    const url = req.protocol+ "://" + req.get("host");
+    imagePath =  url + "/images/" + req.file.filename
+  }
+
+  const post = {_id: req.body.id,title: req.body.title, content: req.body.content,imagePath: imagePath};
+  Post.updateOne({_id:req.params.id}, post).then((result) => {
     res.status(200).json({
-      message: "Posts delivered successfully!!!",
-      posts: docs
+      message: " Update Successful !!! ",
+      post : post
     });
   });
+})
 
+router.get('',(req,res,next) => {
+  const pageSize = +req.query.pageSize;
+  const currentPage = +req.query.currentPage;
+  const postQuery = Post.find();
+  let fetchedPosts;
+  if(pageSize && currentPage){
+    postQuery.skip(pageSize*(currentPage-1))
+             .limit(pageSize);
+  }
+  postQuery.then(docs =>{
+        fetchedPosts = docs
+        return Post.count();
+        }).then(count=>{
+          res.status(200).json({
+            message: "Posts delivered successfully!!!",
+            posts: fetchedPosts,
+            maxPosts: count
+          });
+        })
 });
 
 router.get("/:id", (req, res, next) => {
@@ -58,7 +85,7 @@ router.get("/:id", (req, res, next) => {
     if (post) {
       res.status(200).json(post);
     } else {
-      res.status(404).json({ message: "Post not found!" });
+      res.status(404).json({ message:"Post not found!"});
     }
   });
 });
@@ -72,13 +99,6 @@ router.delete('/:id',(req,res,next)=>{
   });
 
 })
-router.put('/:id',(req,res,next)=>{
-  const post = {_id: req.body.id,title: req.body.title, content: req.body.content};
-  Post.updateOne({_id:req.params.id}, post).then((result) => {
-    res.status(200).json({
-      message: " Update Successful !!! "
-    });
-  });
-})
+
 
 module.exports  = router;
