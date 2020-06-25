@@ -2,6 +2,8 @@ const express = require('express');
 const Post = require('../models/post');
 const router = express.Router();
 const multer = require('multer');
+const tokenAuth = require('../middleware/chech-auth');
+const chechAuth = require('../middleware/chech-auth');
 
 const MIME_TYPE_MAP = {
   'image/png':'png',
@@ -10,8 +12,6 @@ const MIME_TYPE_MAP = {
 
 }
 const storage = multer.diskStorage({
-
-
   destination: (req, file, cb)=> {
     const isValid = MIME_TYPE_MAP[file.mimetype];
     let error = new Error(" Invalid Image");
@@ -24,7 +24,7 @@ const storage = multer.diskStorage({
     cb(null, name+"-"+Date.now()+"-"+ext);
   }
 })
-router.post('',multer({storage:storage}).single("image"),(req,res,next)=>{
+router.post('', tokenAuth , multer({storage:storage}).single("image"),(req,res,next)=>{
   const url = req.protocol+ "://" + req.get("host");
   const post = new Post({
     title: req.body.title,
@@ -43,7 +43,7 @@ router.post('',multer({storage:storage}).single("image"),(req,res,next)=>{
   });
 });
 
-router.put('/:id',multer({storage:storage}).single("image"),(req,res,next)=>{
+router.put('/:id',tokenAuth, multer({storage:storage}).single("image"),(req,res,next)=>{
   let imagePath = req.body.imagePath;
   if(req.file){
     const url = req.protocol+ "://" + req.get("host");
@@ -59,7 +59,7 @@ router.put('/:id',multer({storage:storage}).single("image"),(req,res,next)=>{
   });
 })
 
-router.get('',(req,res,next) => {
+router.get('',tokenAuth,(req,res,next) => {
   const pageSize = +req.query.pageSize;
   const currentPage = +req.query.currentPage;
   const postQuery = Post.find();
@@ -80,7 +80,7 @@ router.get('',(req,res,next) => {
         })
 });
 
-router.get("/:id", (req, res, next) => {
+router.get("/:id",tokenAuth, (req, res, next) => {
   Post.findById(req.params.id).then(post => {
     if (post) {
       res.status(200).json(post);
@@ -90,15 +90,15 @@ router.get("/:id", (req, res, next) => {
   });
 });
 
-router.delete('/:id',(req,res,next)=>{
+router.delete('/:id',tokenAuth,(req,res,next)=>{
 
   Post.deleteOne({_id:req.params.id}).then((result) => {
     res.status(200).json({
       message: " delete successful "
     });
   });
-
 })
+
 
 
 module.exports  = router;

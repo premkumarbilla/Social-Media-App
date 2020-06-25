@@ -2,8 +2,17 @@
   <span> <a routerLink= "/"> Messages</a></span>
   <span class= "spacer"></span>
   <ul>
-    <li>
+    <li *ngIf = "isAuthenticated">
       <a mat-button routerLink="/create" routerLinkActive="mat-warn"> Create Post</a>
+    </li>
+    <li *ngIf = "!isAuthenticated">
+      <a mat-button routerLink="/login" routerLinkActive="mat-warn"> Log In </a>
+    </li>
+    <li *ngIf = "!isAuthenticated">
+      <a mat-button routerLink="/signup" routerLinkActive="mat-warn"> Sign Up </a>
+    </li>
+    <li *ngIf = "isAuthenticated">
+      <button mat-button (click) = "onLogOut()"> Log Out </button>
     </li>
   </ul>
 </mat-toolbar>
